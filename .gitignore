@@ -1,0 +1,28 @@
+# ビルド出力
+build/
+build*/
+cmake-build*/
+proj.*/bin/
+proj.*/obj/
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.user
+*.suo
+
+# Xcode
+*.xcodeproj/xcuserdata/
+DerivedData/
+
+# 生成された依存ライブラリ
+axmol/build_*/
+
+# OS固有
+Thumbs.db
+.DS_Store
+
+# エディタ設定(お好みで)
+.vscode/
