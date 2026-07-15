@@ -137,7 +137,8 @@ bool MainScene::init()
 
 bool MainScene::onPointerDown(PointerEvent* ev)
 {
-    AXLOGD("onPointerDown detected, button: {}", static_cast<int>(ev->getButton()));
+    AXLOGD("onPointerDown detected, button: {}, x={}, y={}",
+           static_cast<int>(ev->getButton()), ev->getLocation().x, ev->getLocation().y);
     return true;
 }
 
