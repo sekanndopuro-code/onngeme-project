@@ -50,19 +50,22 @@ jobs:
         run: |
           set -e
 
-          XCODEPROJ=$(find proj.ios_mac/ios \
+          XCODEPROJ=$(find . \
             -type d \
             -name "*.xcodeproj" \
+            -not -path "./.git/*" \
             -print -quit)
 
           if [ -z "$XCODEPROJ" ]; then
             echo "ERROR: Xcode project was not generated."
-            echo "Searching generated files:"
-            find proj.ios_mac/ios -maxdepth 4 -print | head -200
+            echo "Searching for generated files:"
+            find . -maxdepth 5 -print | head -300
             exit 1
           fi
 
           echo "Using Xcode project: $XCODEPROJ"
+
+          echo "XCODEPROJ=$XCODEPROJ" >> "$GITHUB_ENV"
 
           xcodebuild \
             -project "$XCODEPROJ" \
@@ -73,15 +76,12 @@ jobs:
         run: |
           set -e
 
-          XCODEPROJ=$(find proj.ios_mac/ios \
-            -type d \
-            -name "*.xcodeproj" \
-            -print -quit)
-
-          if [ -z "$XCODEPROJ" ]; then
-            echo "ERROR: Xcode project was not found."
+          if [ -z "${XCODEPROJ:-}" ]; then
+            echo "ERROR: XCODEPROJ is not set."
             exit 1
           fi
+
+          echo "Building: $XCODEPROJ"
 
           xcodebuild \
             -project "$XCODEPROJ" \
