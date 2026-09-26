@@ -14,6 +14,11 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
+      - name: Setup CMake 3.31.5
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.31.5'
+
       - name: Checkout matching Axmol version
         shell: bash
         run: |
@@ -24,20 +29,6 @@ jobs:
           echo "AX_ROOT=$AX_ROOT" >> "$GITHUB_ENV"
           echo "$AX_ROOT/tools/cmdline" >> "$GITHUB_PATH"
 
-      - name: Use CMake 3.31.5
-        shell: bash
-        run: |
-          CMAKE_DIR="$HOME/Library/Android/sdk/cmake/3.31.5/bin"
-
-          if [ ! -x "$CMAKE_DIR/cmake" ]; then
-            echo "ERROR: CMake 3.31.5 was not found at:"
-            echo "$CMAKE_DIR"
-            exit 1
-          fi
-
-          echo "$CMAKE_DIR" >> "$GITHUB_PATH"
-          "$CMAKE_DIR/cmake" --version
-
       - name: Setup Axmol
         shell: bash
         run: |
@@ -46,6 +37,7 @@ jobs:
       - name: Generate iOS Xcode project
         shell: bash
         run: |
+          cmake --version
           axmol -p ios -a arm64 -c
 
       - name: Show Xcode version
