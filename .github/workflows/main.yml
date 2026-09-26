@@ -24,10 +24,26 @@ jobs:
           echo "AX_ROOT=$AX_ROOT" >> "$GITHUB_ENV"
           echo "$AX_ROOT/tools/cmdline" >> "$GITHUB_PATH"
 
+      - name: Use CMake 3.31.5
+        shell: bash
+        run: |
+          CMAKE_DIR=$(find /opt/hostedtoolcache /Users/runner/hostedtoolcache \
+            -type d \
+            -path "*/CMake/3.31.5/*/bin" \
+            -print -quit 2>/dev/null)
+
+          if [ -z "$CMAKE_DIR" ]; then
+            echo "CMake 3.31.5 was not found."
+            exit 1
+          fi
+
+          echo "$CMAKE_DIR" >> "$GITHUB_PATH"
+          cmake --version
+
       - name: Setup Axmol
         shell: bash
         run: |
-          bash "$AX_ROOT/setup.ps1"
+          echo "y" | pwsh "$AX_ROOT/setup.ps1"
 
       - name: Generate iOS Xcode project
         shell: bash
