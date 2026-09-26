@@ -27,18 +27,16 @@ jobs:
       - name: Use CMake 3.31.5
         shell: bash
         run: |
-          CMAKE_DIR=$(find /opt/hostedtoolcache /Users/runner/hostedtoolcache \
-            -type d \
-            -path "*/CMake/3.31.5/*/bin" \
-            -print -quit 2>/dev/null)
+          CMAKE_DIR="$HOME/Library/Android/sdk/cmake/3.31.5/bin"
 
-          if [ -z "$CMAKE_DIR" ]; then
-            echo "CMake 3.31.5 was not found."
+          if [ ! -x "$CMAKE_DIR/cmake" ]; then
+            echo "ERROR: CMake 3.31.5 was not found at:"
+            echo "$CMAKE_DIR"
             exit 1
           fi
 
           echo "$CMAKE_DIR" >> "$GITHUB_PATH"
-          cmake --version
+          "$CMAKE_DIR/cmake" --version
 
       - name: Setup Axmol
         shell: bash
