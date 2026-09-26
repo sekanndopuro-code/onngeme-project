@@ -1,0 +1,92 @@
+name: iOS unsigned build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Checkout matching Axmol version
+        shell: bash
+        run: |
+          export AX_ROOT="$RUNNER_TEMP/axmol"
+          git clone https://github.com/axmolengine/axmol.git "$AX_ROOT"
+          git -C "$AX_ROOT" checkout c61ed1c
+
+          echo "AX_ROOT=$AX_ROOT" >> "$GITHUB_ENV"
+          echo "$AX_ROOT/tools/cmdline" >> "$GITHUB_PATH"
+
+      - name: Setup Axmol
+        shell: bash
+        run: |
+          bash "$AX_ROOT/setup.ps1"
+
+      - name: Generate iOS Xcode project
+        shell: bash
+        run: |
+          axmol -p ios -a arm64 -c
+
+      - name: Show Xcode version
+        run: |
+          xcodebuild -version
+
+      - name: Build unsigned iOS app
+        shell: bash
+        run: |
+          XCODEPROJ=$(find proj.ios_mac/ios -maxdepth 1 -name "*.xcodeproj" -print -quit)
+
+          if [ -z "$XCODEPROJ" ]; then
+            echo "ERROR: Xcode project was not generated."
+            exit 1
+          fi
+
+          echo "Using Xcode project: $XCODEPROJ"
+
+          xcodebuild \
+            -project "$XCODEPROJ" \
+            -target "onngeme-project" \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Package unsigned IPA
+        shell: bash
+        run: |
+          APP_PATH=$(find "$RUNNER_TEMP/DerivedData" \
+            -type d \
+            -name "onngeme-project.app" \
+            -path "*/Release-iphoneos/*" \
+            -print -quit)
+
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: onngeme-project.app was not found."
+            exit 1
+          fi
+
+          echo "Found app: $APP_PATH"
+
+          rm -rf "$RUNNER_TEMP/Payload"
+          mkdir -p "$RUNNER_TEMP/Payload"
+
+          cp -R "$APP_PATH" "$RUNNER_TEMP/Payload/"
+
+          cd "$RUNNER_TEMP"
+          zip -qry "$GITHUB_WORKSPACE/onngeme-unsigned.ipa" Payload
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: onngeme-unsigned-ipa
+          path: onngeme-unsigned.ipa
