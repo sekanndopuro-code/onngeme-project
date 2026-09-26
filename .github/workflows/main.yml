@@ -8,108 +8,28 @@ on:
 
 jobs:
   build-ios:
-    runs-on: macos-26
+    runs-on: macos-latest
 
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Checkout matching Axmol version
+      - name: Checkout Axmol
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
 
           export AX_ROOT="$RUNNER_TEMP/axmol"
 
-          git clone https://github.com/axmolengine/axmol.git "$AX_ROOT"
-          git -C "$AX_ROOT" checkout --detach c61ed1c
+          git clone --depth 1 --branch dev https://github.com/axmolengine/axmol.git "$AX_ROOT"
 
           echo "AX_ROOT=$AX_ROOT" >> "$GITHUB_ENV"
           echo "$AX_ROOT/tools/cmdline" >> "$GITHUB_PATH"
 
-      - name: Patch Axmol OpenAL for Apple Framework
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python3 - "$AX_ROOT/3rdparty/openal/CMakeLists.txt" <<'PY'
-          from pathlib import Path
-          import sys
-
-          path = Path(sys.argv[1])
-          text = path.read_text()
-
-          old_sources = '''        target_sources(${IMPL_TARGET}
-              PRIVATE ${OPENAL_SRCS} ${ALC_SRCS} ${CORE_SRCS} ${RC_CONFIG}
-              PRIVATE FILE_SET internal_headers TYPE HEADERS
-                  FILES ${OPENAL_HDRS} ${ALC_HDRS} ${CORE_HDRS}
-              PUBLIC FILE_SET public_headers TYPE HEADERS
-                  BASE_DIRS "${OpenAL_SOURCE_DIR}/include" FILES ${TARGET_PUBLIC_HEADERS})
-          '''
-
-          new_sources = '''        target_sources(${IMPL_TARGET}
-              PRIVATE ${OPENAL_SRCS} ${ALC_SRCS} ${CORE_SRCS} ${RC_CONFIG})
-          # FILE_SET of type HEADERS is incompatible with FRAMEWORK targets in CMake >= 4.4
-          if(NOT (APPLE AND ALSOFT_OSX_FRAMEWORK))
-              target_sources(${IMPL_TARGET}
-                  PRIVATE FILE_SET internal_headers TYPE HEADERS
-                      FILES ${OPENAL_HDRS} ${ALC_HDRS} ${CORE_HDRS}
-                  PUBLIC FILE_SET public_headers TYPE HEADERS
-                      BASE_DIRS "${OpenAL_SOURCE_DIR}/include" FILES ${TARGET_PUBLIC_HEADERS})
-          endif()
-          '''
-
-          if old_sources not in text:
-              raise SystemExit(
-                  "ERROR: Expected OpenAL target_sources block was not found."
-              )
-
-          text = text.replace(old_sources, new_sources, 1)
-
-          old_framework_start = '''        set(_alsoft_bundle_id "org.openal-soft.openal")
-          set_target_properties(${IMPL_TARGET} PROPERTIES
-          '''
-
-          new_framework_start = '''        set(_alsoft_bundle_id "org.openal-soft.openal")
-          # FILE_SET of type HEADERS is incompatible with FRAMEWORK targets in CMake >= 4.4,
-          # so use PUBLIC_HEADER and PRIVATE_HEADER properties instead
-          set(_alsoft_private_headers ${OPENAL_HDRS} ${ALC_HDRS} ${CORE_HDRS})
-          set_target_properties(${IMPL_TARGET} PROPERTIES
-          '''
-
-          if old_framework_start not in text:
-              raise SystemExit(
-                  "ERROR: Expected OpenAL framework block was not found."
-              )
-
-          text = text.replace(old_framework_start, new_framework_start, 1)
-
-          old_public_header = '''              PUBLIC_HEADER "${TARGET_PUBLIC_HEADERS}"
-              MACOSX_RPATH TRUE)
-          '''
-
-          new_public_header = '''              PUBLIC_HEADER "${TARGET_PUBLIC_HEADERS}"
-              PRIVATE_HEADER "${_alsoft_private_headers}"
-              MACOSX_RPATH TRUE)
-          unset(_alsoft_private_headers)
-          '''
-
-          if old_public_header not in text:
-              raise SystemExit(
-                  "ERROR: Expected OpenAL PUBLIC_HEADER block was not found."
-              )
-
-          text = text.replace(old_public_header, new_public_header, 1)
-
-          path.write_text(text)
-
-          print("OpenAL patch applied successfully.")
-          PY
-
       - name: Setup Axmol
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           echo "y" | pwsh "$AX_ROOT/setup.ps1"
 
       - name: Show tool versions
@@ -122,13 +42,13 @@ jobs:
       - name: Generate iOS Xcode project
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
           axmol -p ios -a arm64 -c
 
-      - name: Build unsigned iOS app
+      - name: Show generated Xcode project
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
 
           XCODEPROJ=$(find proj.ios_mac/ios \
             -maxdepth 1 \
@@ -144,6 +64,20 @@ jobs:
 
           xcodebuild \
             -project "$XCODEPROJ" \
+            -list
+
+      - name: Build unsigned iOS app
+        shell: bash
+        run: |
+          set -e
+
+          XCODEPROJ=$(find proj.ios_mac/ios \
+            -maxdepth 1 \
+            -name "*.xcodeproj" \
+            -print -quit)
+
+          xcodebuild \
+            -project "$XCODEPROJ" \
             -target "onngeme-project" \
             -configuration Release \
             -destination "generic/platform=iOS" \
@@ -156,7 +90,7 @@ jobs:
       - name: Package unsigned IPA
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
 
           APP_PATH=$(find "$RUNNER_TEMP/DerivedData" \
             -type d \
@@ -168,8 +102,6 @@ jobs:
             echo "ERROR: onngeme-project.app was not found."
             exit 1
           fi
-
-          echo "Found app: $APP_PATH"
 
           rm -rf "$RUNNER_TEMP/Payload"
           mkdir -p "$RUNNER_TEMP/Payload"
