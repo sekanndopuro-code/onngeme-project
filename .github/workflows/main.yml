@@ -51,12 +51,14 @@ jobs:
           set -e
 
           XCODEPROJ=$(find proj.ios_mac/ios \
-            -maxdepth 1 \
+            -type d \
             -name "*.xcodeproj" \
             -print -quit)
 
           if [ -z "$XCODEPROJ" ]; then
             echo "ERROR: Xcode project was not generated."
+            echo "Searching generated files:"
+            find proj.ios_mac/ios -maxdepth 4 -print | head -200
             exit 1
           fi
 
@@ -72,9 +74,14 @@ jobs:
           set -e
 
           XCODEPROJ=$(find proj.ios_mac/ios \
-            -maxdepth 1 \
+            -type d \
             -name "*.xcodeproj" \
             -print -quit)
+
+          if [ -z "$XCODEPROJ" ]; then
+            echo "ERROR: Xcode project was not found."
+            exit 1
+          fi
 
           xcodebuild \
             -project "$XCODEPROJ" \
