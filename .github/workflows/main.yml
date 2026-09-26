@@ -50,16 +50,19 @@ jobs:
         run: |
           set -e
 
-          XCODEPROJ=$(find . \
+          XCODEPROJ=$(find ./build_ios_arm64 \
+            -maxdepth 1 \
             -type d \
             -name "*.xcodeproj" \
-            -not -path "./.git/*" \
             -print -quit)
 
           if [ -z "$XCODEPROJ" ]; then
-            echo "ERROR: Xcode project was not generated."
-            echo "Searching for generated files:"
-            find . -maxdepth 5 -print | head -300
+            echo "ERROR: Xcode project was not found in build_ios_arm64."
+            echo "Available Xcode projects:"
+            find ./build_ios_arm64 \
+              -type d \
+              -name "*.xcodeproj" \
+              -print
             exit 1
           fi
 
