@@ -26,3 +26,17 @@ Thumbs.db
 
 # エディタ設定(お好みで)
 .vscode/
+# Android / IDE の生成物
+proj.android/.idea/
+proj.android/app/.cxx/
+proj.android/app/src/dev/axmol/lib/
+proj.android/gradle/gradle-daemon-jvm.properties
+
+# 秘密情報・証明書
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.mobileprovision
+

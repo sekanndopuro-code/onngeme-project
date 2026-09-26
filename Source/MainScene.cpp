@@ -23,7 +23,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "MainScene.h"
+#include "MainScene.h" 
+#include "axmol/axmol.h"
+#include "Chart/ChartLoader.h"
 
 using namespace ax;
 
@@ -132,13 +134,33 @@ bool MainScene::init()
     // scheduleUpdate() is required to ensure update(float) is called on every loop
     scheduleUpdate();
 
+    auto result = chart::loadFromFile("charts/sample.json");
+    if (!result) {
+        AXLOGD("[TEST] chart load FAILED");
+    } else {
+        const auto& c = *result;
+        AXLOGD("[TEST] title={} artist={}", c.meta.title, c.meta.artist);
+        AXLOGD("[TEST] bpm={:.2f} offsetMs={} grid={} notes={}", c.bpm, c.offsetMs, c.grid, c.notes.size());
+        for (size_t i = 0; i < c.notes.size(); ++i) {
+            const auto& n = c.notes[i];
+            AXLOGD("[TEST] note[{}] beat=[{},{},{}](={:.4f}) x={:.1f} w={:.1f} type={} inputArea(yCenter={:.1f}, height={:.1f})",
+                   i, n.beat.bar, n.beat.num, n.beat.den, n.beat.toDouble(),
+                   n.x, n.w, static_cast<int>(n.type),
+                   n.inputArea.yCenter, n.inputArea.height);
+        }
+    }
+
+    // ↓ここから追加: 曲の再生を開始する
+    _clock.Play("audio/sample.mp3"); // 下の「注意点」を先に確認してください
+    // ↑ここまで追加
+
     return true;
 }
 
 bool MainScene::onPointerDown(PointerEvent* ev)
 {
     AXLOGD("onPointerDown detected, button: {}, x={}, y={}",
-           static_cast<int>(ev->getButton()), ev->getLocation().x, ev->getLocation().y);
+           static_cast<int>(ev->getButton()), ev->getPoint().x, ev->getPoint().y);
     return true;
 }
 
@@ -171,6 +193,9 @@ void MainScene::onKeyReleased(KeyboardEvent* ev)
 
 void MainScene::update(float delta)
 {
+    _clock.Update();
+    AXLOGD("songMs = {}", _clock.GetSongTimeMs());
+
     switch (_gameState)
     {
     case GameState::init:

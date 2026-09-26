@@ -1,0 +1,48 @@
+{
+    "formatVersion": 1,
+    "meta": {
+        "title": "サンプル楽曲",
+        "artist": "テストアーティスト",
+        "audio": "sample.mp3"
+    },
+    "bpm": 128.0,
+    "offsetMs": 0,
+    "grid": 32,
+    "notes": [
+        {
+            "beat": [0, 0, 1],
+            "x": 3150,
+            "w": 630,
+            "type": "tap",
+            "inputArea": { "yCenter": 200, "height": 150 }
+        },
+        {
+            "beat": [1, 0, 1],
+            "x": 5040,
+            "w": 630,
+            "type": "tap",
+            "inputArea": { "yCenter": 400, "height": 150 }
+        },
+        {
+            "beat": [1, 1, 2],
+            "x": 6930,
+            "w": 630,
+            "type": "tap",
+            "inputArea": { "yCenter": 300, "height": 180 }
+        },
+        {
+            "beat": [2, 0, 1],
+            "x": 1575,
+            "w": 630,
+            "type": "tap",
+            "inputArea": { "yCenter": 500, "height": 150 }
+        },
+        {
+            "beat": [3, 0, 1],
+            "x": 7875,
+            "w": 630,
+            "type": "tap",
+            "inputArea": { "yCenter": 250, "height": 200 }
+        }
+    ]
+}

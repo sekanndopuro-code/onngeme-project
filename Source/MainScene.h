@@ -26,6 +26,8 @@
 #pragma once
 
 #include "axmol/axmol.h"
+#include "axmol/audio/AudioEngine.h"  // ← "axmol/" を追加
+#include "Audio/GameClock.h"
 
 class MainScene : public ax::Scene
 {
@@ -65,4 +67,6 @@ private:
     ax::PointerEventListener* _pointerListener   = nullptr;
     ax::EventListenerKeyboard* _keyboardListener = nullptr;
     int _sceneID                                 = 0;
+
+    GameClock _clock;  // 曲の再生位置を管理する
 };

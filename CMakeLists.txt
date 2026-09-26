@@ -1,4 +1,4 @@
-# /****************************************************************************
+#/****************************************************************************
 # Copyright (c) 2013-2014 cocos2d-x.org
 # Copyright (c) 2019-present Axmol Engine contributors (see AUTHORS.md).
 #
@@ -45,11 +45,14 @@ include(AXGameEngineOptions)
 include(AXGameEngineSetup)
 
 # The common cross-platforms source files and header files
-file(GLOB_RECURSE GAME_HEADER
+# ★CONFIGURE_DEPENDS: 新しいファイルをSourceフォルダに追加/削除したとき、
+#   毎回わざわざCMakeLists.txtを編集して気づかせなくても、
+#   ビルドのたびにCMakeが自動でファイル一覧を再チェックしてくれるようにする。
+file(GLOB_RECURSE GAME_HEADER CONFIGURE_DEPENDS
   Source/*.h Source/*.hpp
 )
 
-file(GLOB_RECURSE GAME_SOURCE
+file(GLOB_RECURSE GAME_SOURCE CONFIGURE_DEPENDS
   Source/*.cpp Source/*.c
 )
 

@@ -25,6 +25,9 @@
 
 #include "AppDelegate.h"
 #include "MainScene.h"
+#include "TouchTestScene.h"
+
+#define USE_TOUCH_TEST_SCENE 1   // ← 1ならテスト画面、0なら本来のゲーム画面
 
 #define USE_VR_RENDERER  0
 #define USE_AUDIO_ENGINE 1
@@ -101,7 +104,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 #if (AX_TARGET_PLATFORM == AX_PLATFORM_WIN32) || (AX_TARGET_PLATFORM == AX_PLATFORM_MAC) || \
     (AX_TARGET_PLATFORM == AX_PLATFORM_LINUX)
         renderView = RenderView::createWithRect(
-            "onngeme-project", ax::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));
+        "onngeme-project", ax::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));  // ← 一時的にスマホの横長比率でテスト
 #else
         renderView = RenderView::create("onngeme-project");
 #endif
@@ -125,10 +128,14 @@ bool AppDelegate::applicationDidFinishLaunching()
 
     // Set the design resolution
     renderView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height,
-                                        ResolutionPolicy::SHOW_ALL);
+                                        ResolutionPolicy::FIXED_WIDTH);
 
     // create a scene. it's an autorelease object
+#if USE_TOUCH_TEST_SCENE
+    auto scene = TouchTestScene::createScene();
+#else
     auto scene = utils::createInstance<MainScene>();
+#endif
 
     // run
     director->runWithScene(scene);
