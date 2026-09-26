@@ -44,7 +44,7 @@
 // ============================================================
 #pragma once
 
-#include "axmol.h"
+#include "axmol/axmol.h"
 
 namespace CoordSystem
 {
